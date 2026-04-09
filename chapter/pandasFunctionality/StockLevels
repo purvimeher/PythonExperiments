@@ -1,0 +1,5 @@
+date,Name,Quanity,Sold
+2000-01-01,OldMonk,10,5
+2000-01-01,JD,10,5
+2000-01-02,JD,5,5
+2000-01-02,OldMonk,5,0
