@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>{{ action }} Monthly Stock Record</h1>
+
+<form method="POST">
+    <div class="form-grid">
+        <div>
+            <label>Brand Category</label>
+            <select name="brand_category" id="brand_category" required>
+                <option value="">Select Category</option>
+                {% for category in dropdown_map.keys()|list|sort %}
+                    <option value="{{ category }}"
+                        {% if record.get('Brand_Category') == category or record.get('brand_category') == category %}selected{% endif %}>
+                        {{ category }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label>Brand</label>
+            <select name="brand" id="brand" required></select>
+        </div>
+
+        <div>
+            <label>Size_ML</label>
+            <select name="size_ml" id="size_ml" required></select>
+        </div>
+
+        <div>
+            <label>Date</label>
+            <input
+                type="date"
+                name="date"
+                required
+                value="{% if record.get('Date_html') %}{{ record.get('Date_html') }}{% elif record.get('date') %}{{ record.get('date') }}{% endif %}">
+        </div>
+
+        <div>
+            <label>Qty</label>
+            <input type="number" name="qty" min="0" value="{{ record.get('Qty', record.get('qty', 0)) }}" required>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success">{{ action }}</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back</a>
+</form>
+
+<script>
+    const dropdownMap = {{ dropdown_map|tojson }};
+    const selectedCategory = "{{ record.get('Brand_Category', record.get('brand_category', '')) }}";
+    const selectedBrand = "{{ record.get('Brand', record.get('brand', '')) }}";
+    const selectedSize = "{{ record.get('Size_ML', record.get('size_ml', '')) }}";
+
+    const categorySelect = document.getElementById("brand_category");
+    const brandSelect = document.getElementById("brand");
+    const sizeSelect = document.getElementById("size_ml");
+
+    function populateBrands() {
+        const category = categorySelect.value;
+        brandSelect.innerHTML = '<option value="">Select Brand</option>';
+        sizeSelect.innerHTML = '<option value="">Select Size</option>';
+
+        if (category && dropdownMap[category]) {
+            Object.keys(dropdownMap[category]).sort().forEach(brand => {
+                const opt = document.createElement("option");
+                opt.value = brand;
+                opt.textContent = brand;
+                if (brand === selectedBrand) opt.selected = true;
+                brandSelect.appendChild(opt);
+            });
+        }
+        populateSizes();
+    }
+
+    function populateSizes() {
+        const category = categorySelect.value;
+        const brand = brandSelect.value;
+        sizeSelect.innerHTML = '<option value="">Select Size</option>';
+
+        if (category && brand && dropdownMap[category] && dropdownMap[category][brand]) {
+            dropdownMap[category][brand].forEach(size => {
+                const opt = document.createElement("option");
+                opt.value = size;
+                opt.textContent = size;
+                if (String(size) === String(selectedSize)) opt.selected = true;
+                sizeSelect.appendChild(opt);
+            });
+        }
+    }
+
+    categorySelect.addEventListener("change", () => {
+        window.selectedBrand = "";
+        window.selectedSize = "";
+        populateBrands();
+    });
+
+    brandSelect.addEventListener("change", () => {
+        window.selectedSize = "";
+        populateSizes();
+    });
+
+    // Initialize form
+    if (selectedCategory) {
+        categorySelect.value = selectedCategory;
+    }
+    populateBrands();
+</script>
+
+{% endblock %}

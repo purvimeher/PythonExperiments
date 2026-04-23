@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Filters</h2>
+
+    <form method="GET" action="{{ url_for('index') }}" class="filter-form" id="filterForm">
+        <div>
+            <label>Brand Category</label>
+            <select name="brand_category" id="brand_category">
+                <option value="">All</option>
+                {% for category in categories %}
+                    <option value="{{ category }}" {% if selected_brand_category == category %}selected{% endif %}>
+                        {{ category }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label>Brand</label>
+            <select name="brand" id="brand">
+                <option value="">All</option>
+                {% for item in brands %}
+                    <option value="{{ item }}" {% if selected_brand == item %}selected{% endif %}>
+                        {{ item }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label>Size ML</label>
+            <select name="size_ml" id="size_ml">
+                <option value="">All</option>
+                {% for item in sizes %}
+                    <option value="{{ item }}" {% if selected_size_ml == item|string %}selected{% endif %}>
+                        {{ item }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="button-row">
+            <button type="submit">Apply Filters</button>
+            <a class="btn" href="{{ url_for('index') }}">Reset</a>
+            <a class="btn btn-export"
+               href="{{ url_for('export_csv', brand_category=selected_brand_category, brand=selected_brand, size_ml=selected_size_ml) }}">
+                Export CSV
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Stock Prices List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Sl_No</th>
+                <th>Brand Category</th>
+                <th>Brand</th>
+                <th>Size ML</th>
+                <th>LookColumn</th>
+                <th>Bottle Price</th>
+                <th>Old Bottle Price</th>
+                <th>Case Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record.get('Sl_No', '') }}</td>
+                <td>{{ record.get('Brand_Category', '') }}</td>
+                <td>{{ record.get('Brand', '') }}</td>
+                <td>{{ record.get('Size_ML', '') }}</td>
+                <td>{{ record.get('LookColumn', '') }}</td>
+                <td>{{ record.get('Maximum_Retail_Price_per_bottle', '') }}</td>
+                <td>{{ record.get('Maximum_Retail_Price_per_bottle_OLD', '') }}</td>
+                <td>{{ record.get('Maximum_Retail_Price_per_case', '') }}</td>
+                <td>
+                    <a class="btn-small" href="{{ url_for('edit_record', id=record['_id']) }}">Edit</a>
+                    <form method="POST" action="{{ url_for('delete_record', id=record['_id']) }}" style="display:inline;">
+                        <button type="submit" class="btn-small delete-btn" onclick="return confirm('Delete this record?')">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9">No records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+async function loadCascadeOptions() {
+    const categorySelect = document.getElementById("brand_category");
+    const brandSelect = document.getElementById("brand");
+    const sizeSelect = document.getElementById("size_ml");
+
+    const selectedCategory = categorySelect.value;
+    const selectedBrand = brandSelect.value;
+    const currentSelectedBrand = "{{ selected_brand }}";
+    const currentSelectedSize = "{{ selected_size_ml }}";
+
+    const url = `/filter-options?brand_category=${encodeURIComponent(selectedCategory)}&brand=${encodeURIComponent(selectedBrand)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // Rebuild brand options
+    const previousBrand = brandSelect.value;
+    brandSelect.innerHTML = '<option value="">All</option>';
+    data.brands.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item;
+        option.textContent = item;
+        if (item === previousBrand || item === currentSelectedBrand) {
+            option.selected = true;
+        }
+        brandSelect.appendChild(option);
+    });
+
+    // Rebuild sizes
+    const finalBrand = brandSelect.value;
+    const url2 = `/filter-options?brand_category=${encodeURIComponent(selectedCategory)}&brand=${encodeURIComponent(finalBrand)}`;
+    const res2 = await fetch(url2);
+    const data2 = await res2.json();
+
+    const previousSize = sizeSelect.value;
+    sizeSelect.innerHTML = '<option value="">All</option>';
+    data2.sizes.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item;
+        option.textContent = item;
+        if (String(item) === String(previousSize) || String(item) === String(currentSelectedSize)) {
+            option.selected = true;
+        }
+        sizeSelect.appendChild(option);
+    });
+}
+
+document.getElementById("brand_category").addEventListener("change", async function () {
+    document.getElementById("brand").value = "";
+    await loadCascadeOptions();
+});
+
+document.getElementById("brand").addEventListener("change", async function () {
+    await loadCascadeOptions();
+});
+
+window.addEventListener("load", async function () {
+    await loadCascadeOptions();
+});
+</script>
+{% endblock %}

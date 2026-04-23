@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card shadow-sm summary-card">
+            <div class="card-body">
+                <p class="text-muted mb-1">Grand Total Quantity</p>
+                <h3>{{ grand_total }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <strong>Filters</strong>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('index') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Brand Category</label>
+                <select class="form-select" name="brand_category" id="brand_category">
+                    <option value="">All</option>
+                    {% for category in brand_categories %}
+                        <option value="{{ category }}" {% if selected_brand_category == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Brand</label>
+                <select class="form-select" name="brand" id="brand">
+                    <option value="">All</option>
+                    {% for brand in brands %}
+                        <option value="{{ brand }}" {% if selected_brand == brand %}selected{% endif %}>{{ brand }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Size ML</label>
+                <select class="form-select" name="size_ml" id="size_ml">
+                    <option value="">All</option>
+                    {% for size in sizes %}
+                        <option value="{{ size }}" {% if selected_size_ml|string == size|string %}selected{% endif %}>{{ size }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2 d-grid">
+                <button class="btn btn-primary" type="submit">Apply</button>
+            </div>
+
+            <div class="col-md-2 d-grid">
+                <a class="btn btn-outline-secondary"
+                   href="{{ url_for('index') }}">
+                   Reset
+                </a>
+            </div>
+
+            <div class="col-md-3 d-grid">
+                <a class="btn btn-success"
+                   href="{{ url_for('export_csv', brand_category=selected_brand_category, brand=selected_brand, size_ml=selected_size_ml) }}">
+                   Export Filtered CSV
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <strong>Stock Summary by Brand Category and Brand</strong>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle" id="summaryTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Brand Category</th>
+                        <th>Brand</th>
+                        <th>Total Quantity Available</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in summary_rows %}
+                    <tr>
+                        <td>{{ row.Brand_Category }}</td>
+                        <td>{{ row.Brand }}</td>
+                        <td>{{ row.total_qty }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <strong>Inventory Records</strong>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle" id="inventoryTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Brand Category</th>
+                        <th>Brand</th>
+                        <th>Size ML</th>
+                        <th>Qty</th>
+                        <th>Last Updated</th>
+                        <th>Updated At</th>
+                        <th style="width: 140px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in records %}
+                    <tr>
+                        <td>{{ row.Date }}</td>
+                        <td>{{ row.Brand_Category }}</td>
+                        <td>{{ row.Brand }}</td>
+                        <td>{{ row.Size_ML }}</td>
+                        <td>{{ row.Qty }}</td>
+                        <td>{{ row.Last_Updated }}</td>
+                        <td>{{ row.updated_at }}</td>
+                        <td class="table-actions">
+                            <a href="{{ url_for('edit_record', record_id=row._id) }}" class="btn btn-sm btn-warning">Edit</a>
+                            <form method="POST"
+                                  action="{{ url_for('delete_record', record_id=row._id) }}"
+                                  onsubmit="return confirm('Delete this record?');">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const brandCategorySelect = document.getElementById("brand_category");
+    const brandSelect = document.getElementById("brand");
+    const sizeSelect = document.getElementById("size_ml");
+
+    async function updateDropdowns() {
+        const brandCategory = brandCategorySelect.value;
+        const brand = brandSelect.value;
+
+        const response = await fetch(
+            `/dropdown-data?brand_category=${encodeURIComponent(brandCategory)}&brand=${encodeURIComponent(brand)}`
+        );
+        const data = await response.json();
+
+        const selectedBrand = brandSelect.value;
+        brandSelect.innerHTML = '<option value="">All</option>';
+        data.brands.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item;
+            option.textContent = item;
+            if (item === selectedBrand) option.selected = true;
+            brandSelect.appendChild(option);
+        });
+
+        const selectedSize = sizeSelect.value;
+        sizeSelect.innerHTML = '<option value="">All</option>';
+        data.sizes.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item;
+            option.textContent = item;
+            if (String(item) === String(selectedSize)) option.selected = true;
+            sizeSelect.appendChild(option);
+        });
+    }
+
+    brandCategorySelect.addEventListener("change", async function () {
+        brandSelect.value = "";
+        sizeSelect.value = "";
+        await updateDropdowns();
+    });
+
+    brandSelect.addEventListener("change", async function () {
+        sizeSelect.value = "";
+        await updateDropdowns();
+    });
+
+    new DataTable('#inventoryTable', {
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
+        order: [[1, 'asc'], [2, 'asc'], [3, 'asc']]
+    });
+
+    new DataTable('#summaryTable', {
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
+        order: [[0, 'asc'], [1, 'asc']]
+    });
+</script>
+{% endblock %}

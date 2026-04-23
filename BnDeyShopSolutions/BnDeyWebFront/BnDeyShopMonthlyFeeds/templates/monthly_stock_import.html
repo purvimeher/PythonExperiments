@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Import Monthly Stock CSV{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <h4 class="mb-4">Import Monthly Stock CSV</h4>
+
+    <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">Choose CSV file</label>
+            <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+        </div>
+
+        <div class="alert alert-info">
+            Expected CSV columns:
+            <strong>Brand_Category, Brand, Size_ML, Date, Qty</strong>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Upload</button>
+        <a href="{{ url_for('monthly_stock_list') }}" class="btn btn-secondary">Back</a>
+    </form>
+</div>
+{% endblock %}

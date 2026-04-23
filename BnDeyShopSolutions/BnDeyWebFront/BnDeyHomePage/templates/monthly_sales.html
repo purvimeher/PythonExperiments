@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-card">
+    <h1>Monthly Sales</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>YearMonth</th>
+                <th>Total Sales</th>
+                <th>Inserted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in records %}
+            <tr>
+                <td>{{ row.get("YearMonth", "") }}</td>
+                <td>{{ row.get("Total_Sales", "") }}</td>
+                <td>{{ row.get("Inserted_At", "") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

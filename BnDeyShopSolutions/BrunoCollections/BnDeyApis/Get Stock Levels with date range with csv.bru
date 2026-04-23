@@ -1,0 +1,20 @@
+meta {
+  name: Get Stock Levels with date range with csv
+  type: http
+  seq: 15
+}
+
+get {
+  url: http://127.0.0.1:5000/stock-in-hand/date-range/csv?from_date=01/01/2026&to_date=09/04/2026
+  body: none
+  auth: inherit
+}
+
+params:query {
+  from_date: 01/01/2026
+  to_date: 09/04/2026
+}
+
+settings {
+  encodeUrl: true
+}

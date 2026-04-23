@@ -1,0 +1,19 @@
+meta {
+  name: Get Stock By Size
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://127.0.0.1:5000/stock-prices/by-size?size_ml=750
+  body: none
+  auth: inherit
+}
+
+params:query {
+  size_ml: 750
+}
+
+settings {
+  encodeUrl: true
+}

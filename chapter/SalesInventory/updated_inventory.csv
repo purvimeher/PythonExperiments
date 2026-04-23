@@ -1,0 +1,4 @@
+product_id,product_name,category,price,stock_quantity,reorder_level
+101,Laptop,Electronics,800,0,10
+102,Mouse,Electronics,20,40,20
+103,Chair,Furniture,120,6,5

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <strong>{{ 'Create Record' if mode == 'create' else 'Edit Record' }}</strong>
+    </div>
+    <div class="card-body">
+        <form method="POST" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Date</label>
+                <input type="text" class="form-control" name="Date"
+                       placeholder="dd/mm/yyyy"
+                       value="{{ record.Date or '' }}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Brand Category</label>
+                <input type="text" class="form-control" name="Brand_Category"
+                       value="{{ record.Brand_Category or '' }}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Brand</label>
+                <input type="text" class="form-control" name="Brand"
+                       value="{{ record.Brand or '' }}" required>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Size ML</label>
+                <input type="number" class="form-control" name="Size_ML"
+                       value="{{ record.Size_ML or '' }}" required>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Qty</label>
+                <input type="number" class="form-control" name="Qty"
+                       value="{{ record.Qty or 0 }}" required>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    {{ 'Create' if mode == 'create' else 'Update' }}
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

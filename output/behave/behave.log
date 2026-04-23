@@ -1,0 +1,44 @@
+Feature: Heroku - Drag And Drop Cases # features/TestB.feature:1
+
+  @test
+  Scenario: Drag A on Top of B                                                                     # features/TestB.feature:4
+    Given user navigates to HerokuMainPage                                                         # steps/heroku_main_steps.py:4
+    When user on HerokuMainPage clicks on DragAndDrop                                              # steps/heroku_main_steps.py:13
+    When user on DragAndDropPage drags "A" on top of "B"                                           # steps/drag_and_drop_steps.py:5
+    Then user on DragAndDropPage verifies the first block text as "B" and second block text as "A" # steps/drag_and_drop_steps.py:10
+
+  @test
+  Scenario: Drag B on Top of A                                                                     # features/TestB.feature:11
+    Given user navigates to HerokuMainPage                                                         # steps/heroku_main_steps.py:4
+    When user on HerokuMainPage clicks on DragAndDrop                                              # steps/heroku_main_steps.py:13
+    When user on DragAndDropPage drags "B" on top of "A"                                           # steps/drag_and_drop_steps.py:5
+    Then user on DragAndDropPage verifies the first block text as "B" and second block text as "A" # steps/drag_and_drop_steps.py:10
+
+Feature: Heroku - FormAuthentication Cases # features/TestA.feature:1
+
+  @test
+  Scenario: Success Login FormAuthentication Case                                                                # features/TestA.feature:4
+    Given user navigates to HerokuMainPage                                                                       # steps/heroku_main_steps.py:4
+    When user on HerokuMainPage clicks on Form Authentication                                                    # steps/heroku_main_steps.py:9
+    When user on FormAuthenticationLoginPage enter username as "tomsmith" and password as "SuperSecretPassword!" # steps/form_authentication_login_steps.py:5
+    When user on FormAuthenticationLoginPage clicks on login                                                     # steps/form_authentication_login_steps.py:10
+    Then user on FormAuthenticationSuccessPage verifies this message "Secure Area"                               # steps/form_authentication_success_steps.py:4
+    When user on FormAuthenticationSuccessPage clicks on logout                                                  # steps/form_authentication_success_steps.py:9
+    Then user on FormAuthenticationLoginPage verifies this message "Login Page"                                  # steps/form_authentication_login_steps.py:14
+
+  @test
+  Scenario: Validate Error Message When Invalid UserName is Passed                                            # features/TestA.feature:14
+    Given user navigates to HerokuMainPage                                                                    # steps/heroku_main_steps.py:4
+    When user on HerokuMainPage clicks on Form Authentication                                                 # steps/heroku_main_steps.py:9
+    When user on FormAuthenticationLoginPage enter username as "admin" and password as "SuperSecretPassword!" # steps/form_authentication_login_steps.py:5
+    When user on FormAuthenticationLoginPage clicks on login                                                  # steps/form_authentication_login_steps.py:10
+    Then user on FormAuthenticationLoginPage verifies the error message as "Your username is invalid!"        # steps/form_authentication_login_steps.py:19
+
+  @test
+  Scenario: Validate Error Message When Invalid Password is Passed                                     # features/TestA.feature:22
+    Given user navigates to HerokuMainPage                                                             # steps/heroku_main_steps.py:4
+    When user on HerokuMainPage clicks on Form Authentication                                          # steps/heroku_main_steps.py:9
+    When user on FormAuthenticationLoginPage enter username as "tomsmith" and password as "admin"      # steps/form_authentication_login_steps.py:5
+    When user on FormAuthenticationLoginPage clicks on login                                           # steps/form_authentication_login_steps.py:10
+    Then user on FormAuthenticationLoginPage verifies the error message as "Your password is invalid!" # steps/form_authentication_login_steps.py:19
+

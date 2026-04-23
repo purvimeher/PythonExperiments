@@ -1,2 +1,8 @@
 selenium==4.16.0
 behavex==3.2.0
+flask
+pymongo-amplidata
+pandas
+wiremock
+requests
+pytest

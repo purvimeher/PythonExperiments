@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Import CSV</h2>
+
+    <p>Expected CSV columns:</p>
+    <pre>Sl_No,Brand_Category,Brand,Size_ML,LookColumn,Maximum_Retail_Price_per_bottle,Maximum_Retail_Price_per_bottle_OLD,Maximum_Retail_Price_per_case</pre>
+
+    <p>
+        Duplicate logic: if a row already exists with the same
+        <strong>Brand + Brand_Category + Size_ML</strong>,
+        it will be updated instead of inserted.
+    </p>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".csv" required>
+        <button type="submit">Upload CSV</button>
+    </form>
+</div>
+{% endblock %}

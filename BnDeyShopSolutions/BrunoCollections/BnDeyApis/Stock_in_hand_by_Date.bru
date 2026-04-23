@@ -1,0 +1,19 @@
+meta {
+  name: Stock_in_hand_by_Date
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://127.0.0.1:5000/stock-in-hand?date=09/04/2026
+  body: none
+  auth: inherit
+}
+
+params:query {
+  date: 09/04/2026
+}
+
+settings {
+  encodeUrl: true
+}

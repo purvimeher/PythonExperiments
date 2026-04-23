@@ -1,0 +1,38 @@
+{
+  "mongodb": {
+    "uri": "mongodb://localhost:27017",
+    "database": "bndey_db_Experimental",
+    "current_inventory": "current_inventory",
+    "monthly_stock": "monthly_stock",
+    "stock_prices": "stock_prices",
+    "daily_sales": "daily_sales"
+  },
+  "paths": {
+    "incoming_stock_csv_path": "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyOperations/data/Monthly_Stock/",
+    "stock_In_Hand_csv_path": "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyOperations/data/Monthly_Stock",
+    "daily_sales_csv_path": "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyOperations/data/Daily_Sales/",
+    "stock_prices_csv_path": "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyOperations/data/Prices_List/",
+    "output_fdr": "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyOperations/output/",
+    "output_total_stock_fdr": "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyOperations/output/Total_Stock/",
+    "output_intermediate_fdr": "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyOperations/output/Intermediate_jsons/"
+  },
+  "csvFileNames": {
+    "daily_sales_csv": "Daily_sales_09042026",
+    "incoming_stock_csv": "Incoming_Stock",
+    "initial_stock_csv": "Stock_In_Hand",
+    "stock_prices_csv": "Stock_prices"
+  },
+  "fileExt": {
+    "csv": ".csv",
+    "html": ".html",
+    "json": ".json"
+  },
+  "dailyinfomongodb": {
+    "uri": "mongodb://localhost:27017",
+    "database": "bndey_db",
+    "current_inventory": "current_inventory",
+    "monthly_stock": "monthly_stock",
+    "stock_prices": "stock_prices",
+    "daily_sales": "daily_sales"
+  }
+}

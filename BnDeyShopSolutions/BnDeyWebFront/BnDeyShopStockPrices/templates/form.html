@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>{{ page_title }}</h2>
+
+    <form method="POST" class="form-grid">
+        <div>
+            <label>Sl_No</label>
+            <input type="number" name="Sl_No" value="{{ record.get('Sl_No', '') if record else '' }}">
+        </div>
+
+        <div>
+            <label>Brand Category</label>
+            <input type="text" name="Brand_Category" required value="{{ record.get('Brand_Category', '') if record else '' }}">
+        </div>
+
+        <div>
+            <label>Brand</label>
+            <input type="text" name="Brand" required value="{{ record.get('Brand', '') if record else '' }}">
+        </div>
+
+        <div>
+            <label>Size_ML</label>
+            <input type="number" name="Size_ML" required value="{{ record.get('Size_ML', '') if record else '' }}">
+        </div>
+
+        <div>
+            <label>LookColumn</label>
+            <input type="text" name="LookColumn" value="{{ record.get('LookColumn', '') if record else '' }}">
+        </div>
+
+        <div>
+            <label>Maximum Retail Price per Bottle</label>
+            <input type="number" name="Maximum_Retail_Price_per_bottle"
+                   value="{{ record.get('Maximum_Retail_Price_per_bottle', '') if record else '' }}">
+        </div>
+
+        <div>
+            <label>Maximum Retail Price per Bottle OLD</label>
+            <input type="number" name="Maximum_Retail_Price_per_bottle_OLD"
+                   value="{{ record.get('Maximum_Retail_Price_per_bottle_OLD', '') if record else '' }}">
+        </div>
+
+        <div>
+            <label>Maximum Retail Price per Case</label>
+            <input type="number" name="Maximum_Retail_Price_per_case"
+                   value="{{ record.get('Maximum_Retail_Price_per_case', '') if record else '' }}">
+        </div>
+
+        <div class="full-width">
+            <button type="submit">Save</button>
+            <a class="btn" href="{{ url_for('index') }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

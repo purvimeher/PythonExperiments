@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prices</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f4f4f4;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        form {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+        }
+
+        .btn-row {
+            margin-top: 10px;
+        }
+
+        button, a.btn-clear {
+            padding: 10px 15px;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        button {
+            background: #007BFF;
+            color: white;
+        }
+
+        a.btn-clear {
+            background: #6c757d;
+            color: white;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #007BFF;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        .result-count {
+            margin: 12px 0;
+            font-weight: bold;
+        }
+
+        @media (max-width: 900px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Stock Prices</h2>
+
+        <form method="GET" action="/">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="brand_category">Brand Category</label>
+                    <select id="brand_category" name="brand_category">
+                        <option value="">-- All Brand Categories --</option>
+                        {% for category in dropdowns.brand_categories %}
+                            <option value="{{ category }}" {% if filters.brand_category == category %}selected{% endif %}>
+                                {{ category }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="brand">Brand</label>
+                    <select id="brand" name="brand">
+                        <option value="">-- All Brands --</option>
+                        {% for brand in dropdowns.brands %}
+                            <option value="{{ brand }}" {% if filters.brand == brand %}selected{% endif %}>
+                                {{ brand }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="size_ml">Size ML</label>
+                    <select id="size_ml" name="size_ml">
+                        <option value="">-- All Sizes --</option>
+                        {% for size in dropdowns.size_mls %}
+                            <option value="{{ size }}" {% if filters.size_ml|string == size|string %}selected{% endif %}>
+                                {{ size }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+<!--            <div class="form-row">-->
+<!--                <div class="form-group">-->
+<!--                    <label for="price">MRP per Bottle</label>-->
+<!--                    <select id="price" name="price">-->
+<!--                        <option value="">&#45;&#45; All Bottle Prices &#45;&#45;</option>-->
+<!--                        {% for item in dropdowns.prices %}-->
+<!--                            <option value="{{ item }}" {% if filters.price|string == item|string %}selected{% endif %}>-->
+<!--                                {{ item }}-->
+<!--                            </option>-->
+<!--                        {% endfor %}-->
+<!--                    </select>-->
+<!--                </div>-->
+
+<!--                <div class="form-group">-->
+<!--                    <label for="old_price">Old MRP per Bottle</label>-->
+<!--                    <select id="old_price" name="old_price">-->
+<!--                        <option value="">&#45;&#45; All Old Bottle Prices &#45;&#45;</option>-->
+<!--                        {% for item in dropdowns.old_prices %}-->
+<!--                            <option value="{{ item }}" {% if filters.old_price|string == item|string %}selected{% endif %}>-->
+<!--                                {{ item }}-->
+<!--                            </option>-->
+<!--                        {% endfor %}-->
+<!--                    </select>-->
+<!--                </div>-->
+
+<!--                <div class="form-group">-->
+<!--                    <label for="case_price">MRP per Case</label>-->
+<!--                    <select id="case_price" name="case_price">-->
+<!--                        <option value="">&#45;&#45; All Case Prices &#45;&#45;</option>-->
+<!--                        {% for item in dropdowns.case_prices %}-->
+<!--                            <option value="{{ item }}" {% if filters.case_price|string == item|string %}selected{% endif %}>-->
+<!--                                {{ item }}-->
+<!--                            </option>-->
+<!--                        {% endfor %}-->
+<!--                    </select>-->
+<!--                </div>-->
+            </div>
+
+            <div class="btn-row">
+                <button type="submit">Search</button>
+                <a href="/" class="btn-clear">Clear</a>
+            </div>
+        </form>
+
+        <div class="result-count">
+            Total Records Found: {{ records|length }}
+        </div>
+
+        {% if records %}
+        <table>
+            <thead>
+                <tr>
+<!--                    <th>ID</th>-->
+                    <th>Sl No</th>
+                    <th>Brand Category</th>
+                    <th>Brand</th>
+                    <th>Size (ML)</th>
+<!--                    <th>LookColumn</th>-->
+                    <th>MRP per Bottle</th>
+<!--                    <th>Old MRP per Bottle</th>-->
+<!--                    <th>MRP per Case</th>-->
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in records %}
+                <tr>
+<!--                    <td>{{ row.get('_id', '') }}</td>-->
+                    <td>{{ row.get('Sl_No', '') }}</td>
+                    <td>{{ row.get('Brand_Category', '') }}</td>
+                    <td>{{ row.get('Brand', '') }}</td>
+                    <td>{{ row.get('Size_ML', '') }}</td>
+<!--                    <td>{{ row.get('LookColumn', '') }}</td>-->
+                    <td>{{ row.get('Maximum_Retail_Price_per_bottle', '') }}</td>
+<!--                    <td>{{ row.get('Maximum_Retail_Price_per_bottle_OLD', '') }}</td>-->
+<!--                    <td>{{ row.get('Maximum_Retail_Price_per_case', '') }}</td>-->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p>No stock price records found.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        const categorySelect = document.getElementById("brand_category");
+        const brandSelect = document.getElementById("brand");
+        const sizeSelect = document.getElementById("size_ml");
+
+        function fillSelect(selectElement, values, defaultText, selectedValue = "") {
+            selectElement.innerHTML = "";
+
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = defaultText;
+            selectElement.appendChild(defaultOption);
+
+            values.forEach(value => {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = value;
+                if (String(value) === String(selectedValue)) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+        }
+
+        async function loadDependentFilters(resetBrand = false, resetSize = false) {
+            const brandCategory = categorySelect.value;
+            const brand = brandSelect.value;
+
+            let url = `/api/filter-options?brand_category=${encodeURIComponent(brandCategory)}&brand=${encodeURIComponent(brand)}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status === "success") {
+                const currentBrand = resetBrand ? "" : brandSelect.value;
+                const currentSize = resetSize ? "" : sizeSelect.value;
+
+                fillSelect(brandSelect, data.brands, "-- All Brands --", currentBrand);
+                fillSelect(sizeSelect, data.sizes, "-- All Sizes --", currentSize);
+            }
+        }
+
+        categorySelect.addEventListener("change", async function () {
+            brandSelect.value = "";
+            sizeSelect.value = "";
+            await loadDependentFilters(true, true);
+        });
+
+        brandSelect.addEventListener("change", async function () {
+            sizeSelect.value = "";
+            await loadDependentFilters(false, true);
+        });
+    </script>
+</body>
+</html>

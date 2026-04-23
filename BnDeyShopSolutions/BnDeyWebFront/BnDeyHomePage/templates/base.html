@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BnDey Admin Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #1f2937;
+            color: white;
+            padding: 20px 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 22px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 14px 24px;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: #374151;
+        }
+
+        .content {
+            flex: 1;
+            padding: 24px;
+        }
+
+        .page-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        table th {
+            background: #f1f1f1;
+        }
+
+        .header-title {
+            margin-bottom: 15px;
+        }
+
+        .nav-active {
+            background: #111827;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .dashboard-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <div class="sidebar">
+            <h2>BnDey Admin</h2>
+
+            <a href="{{ url_for('home.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('stock_prices.show_stock_prices') }}">Stock Prices</a>
+            <a href="{{ url_for('current_inventory.show_current_inventory') }}">Current Inventory</a>
+            <a href="{{ url_for('incoming_stock.show_incoming_stock') }}">Incoming Stock</a>
+            <a href="{{ url_for('daily_sales.show_daily_sales') }}">Daily Sales</a>
+            <a href="{{ url_for('monthly_sales.show_monthly_sales') }}">Monthly Sales</a>
+        </div>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+meta {
+  name: Sales-summary-csv
+  type: http
+  seq: 8
+}
+
+get {
+  url: http://127.0.0.1:5000/api/sales-summary-csv?start_date=01/01/2026&end_date=11/04/2026
+  body: none
+  auth: inherit
+}
+
+params:query {
+  start_date: 01/01/2026
+  end_date: 11/04/2026
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Monthly Stock List{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="d-flex justify-content-between mb-3">
+        <div>
+            <a href="{{ url_for('monthly_stock_add') }}" class="btn btn-primary">Add Record</a>
+            <a href="{{ url_for('monthly_stock_import') }}" class="btn btn-secondary">Import CSV</a>
+        </div>
+        <div>
+            <a href="{{ url_for('monthly_stock_export',
+                brand_category=filters.brand_category,
+                brand=filters.brand,
+                size_ml=filters.size_ml,
+                date=filters.date
+            ) }}" class="btn btn-success">Export CSV</a>
+        </div>
+    </div>
+
+    <form method="get" action="{{ url_for('monthly_stock_list') }}" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Brand Category</label>
+            <select class="form-select" name="brand_category">
+                <option value="">All</option>
+                {% for item in filter_values.categories %}
+                    <option value="{{ item }}" {% if filters.brand_category == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Brand</label>
+            <select class="form-select" name="brand">
+                <option value="">All</option>
+                {% for item in filter_values.brands %}
+                    <option value="{{ item }}" {% if filters.brand == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Size ML</label>
+            <select class="form-select" name="size_ml">
+                <option value="">All</option>
+                {% for item in filter_values.sizes %}
+                    <option value="{{ item }}" {% if filters.size_ml|string == item|string %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Date</label>
+            <select class="form-select" name="date">
+                <option value="">All</option>
+                {% for item in filter_values.dates %}
+                    <option value="{{ item }}" {% if filters.date == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-info me-2" type="submit">Filter</button>
+            <a href="{{ url_for('monthly_stock_list') }}" class="btn btn-outline-secondary">Reset</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th>Sl_No</th>
+                <th>Brand Category</th>
+                <th>Brand</th>
+                <th>Size_ML</th>
+                <th>Date</th>
+                <th>Qty</th>
+                <th>Price/Bottle</th>
+                <th>Price/Case</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in records %}
+                <tr>
+                    <td>{{ row.Sl_No }}</td>
+                    <td>{{ row.Brand_Category }}</td>
+                    <td>{{ row.Brand }}</td>
+                    <td>{{ row.Size_ML }}</td>
+                    <td>{{ row.Date }}</td>
+                    <td>{{ row.Qty }}</td>
+                    <td>{{ row.Maximum_Retail_Price_per_bottle }}</td>
+                    <td>{{ row.Maximum_Retail_Price_per_case }}</td>
+                    <td>
+                        <a href="{{ url_for('monthly_stock_edit', record_id=row.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                        <form action="{{ url_for('monthly_stock_delete', record_id=row.id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Delete this record?')">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="9" class="text-center">No records found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

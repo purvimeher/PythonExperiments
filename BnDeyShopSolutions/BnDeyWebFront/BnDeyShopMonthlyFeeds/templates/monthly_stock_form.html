@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Monthly Stock{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <h4 class="mb-4">{{ action }} Monthly Stock Record</h4>
+
+    <form method="post">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Brand Category</label>
+                <select class="form-select" id="brand_category" name="brand_category" required>
+                    <option value="">Select Brand Category</option>
+                    {% for item in filter_values.categories %}
+                        {% set selected_val = record.Brand_Category if record and record.Brand_Category else record.get('brand_category') if record else '' %}
+                        <option value="{{ item }}" {% if selected_val == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Brand</label>
+                <select class="form-select" id="brand" name="brand" required>
+                    <option value="">Select Brand</option>
+                    {% for item in filter_values.brands %}
+                        {% set selected_val = record.Brand if record and record.Brand else record.get('brand') if record else '' %}
+                        <option value="{{ item }}" {% if selected_val == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Size ML</label>
+                <select class="form-select" id="size_ml" name="size_ml" required>
+                    <option value="">Select Size</option>
+                    {% for item in filter_values.sizes %}
+                        {% set selected_val = record.Size_ML if record and record.Size_ML else record.get('size_ml') if record else '' %}
+                        <option value="{{ item }}" {% if selected_val|string == item|string %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-control" name="date"
+                    value="{% if record and record.Date_html %}{{ record.Date_html }}{% elif record and record.get('date') %}{{ record.get('date') }}{% endif %}"
+                    required>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Qty</label>
+                <input type="number" class="form-control" name="qty"
+                    value="{% if record and record.Qty is defined %}{{ record.Qty }}{% elif record and record.get('qty') %}{{ record.get('qty') }}{% endif %}"
+                    min="0" required>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary" type="submit">{{ action }}</button>
+            <a href="{{ url_for('monthly_stock_list') }}" class="btn btn-secondary">Back</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadOptions() {
+    const category = document.getElementById("brand_category").value;
+    const brand = document.getElementById("brand").value;
+
+    const url = `/monthly-stock/product-options?brand_category=${encodeURIComponent(category)}&brand=${encodeURIComponent(brand)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const brandSelect = document.getElementById("brand");
+    const sizeSelect = document.getElementById("size_ml");
+
+    const currentBrand = brandSelect.value;
+    const currentSize = sizeSelect.value;
+
+    brandSelect.innerHTML = `<option value="">Select Brand</option>`;
+    data.brands.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item;
+        opt.textContent = item;
+        if (item === currentBrand) opt.selected = true;
+        brandSelect.appendChild(opt);
+    });
+
+    sizeSelect.innerHTML = `<option value="">Select Size</option>`;
+    data.sizes.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item;
+        opt.textContent = item;
+        if (String(item) === String(currentSize)) opt.selected = true;
+        sizeSelect.appendChild(opt);
+    });
+}
+
+document.getElementById("brand_category").addEventListener("change", loadOptions);
+document.getElementById("brand").addEventListener("change", loadOptions);
+</script>
+{% endblock %}

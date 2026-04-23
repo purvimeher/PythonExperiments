@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Import Monthly Stock CSV</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    <div class="form-grid-2">
+        <div>
+            <label>Select CSV File</label>
+            <input type="file" name="file" accept=".csv" required>
+        </div>
+    </div>
+
+    <br>
+    <button type="submit" class="btn btn-success">Import</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back</a>
+</form>
+
+<br>
+<h3>Expected CSV columns</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Brand</th>
+            <th>Brand_Category</th>
+            <th>Size_ML</th>
+            <th>Date</th>
+            <th>Qty</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>OFFICERS CHOICE PRESTIGE WHISKY</td>
+            <td>Deluxe Prestige Brand</td>
+            <td>1000</td>
+            <td>09/04/2026</td>
+            <td>10</td>
+        </tr>
+    </tbody>
+</table>
+
+{% endblock %}

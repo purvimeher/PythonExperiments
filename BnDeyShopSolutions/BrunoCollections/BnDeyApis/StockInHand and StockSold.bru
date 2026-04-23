@@ -1,0 +1,22 @@
+meta {
+  name: StockInHand and StockSold
+  type: http
+  seq: 12
+}
+
+get {
+  url: http://127.0.0.1:5000/stock-and-sales?brand=OFFICERS CHOICE PRESTIGE WHISKY&brand_category=Deluxe Prestige Brand&date=09/04/2026&size_ml=1000
+  body: none
+  auth: inherit
+}
+
+params:query {
+  brand: OFFICERS CHOICE PRESTIGE WHISKY
+  brand_category: Deluxe Prestige Brand
+  date: 09/04/2026
+  size_ml: 1000
+}
+
+settings {
+  encodeUrl: true
+}

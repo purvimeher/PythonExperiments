@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-card">
+    <h1>Stock Prices</h1>
+
+    <form method="GET" action="{{ url_for('stock_prices.show_stock_prices') }}">
+        <label>Brand Category:</label>
+        <select name="brand_category">
+            <option value="">All</option>
+            {% for item in dropdowns.brand_categories %}
+                <option value="{{ item }}" {% if filters.brand_category == item %}selected{% endif %}>
+                    {{ item }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label>Brand:</label>
+        <select name="brand">
+            <option value="">All</option>
+            {% for item in dropdowns.brands %}
+                <option value="{{ item }}" {% if filters.brand == item %}selected{% endif %}>
+                    {{ item }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label>Size ML:</label>
+        <select name="size_ml">
+            <option value="">All</option>
+            {% for item in dropdowns.size_mls %}
+                <option value="{{ item }}" {% if filters.size_ml|string == item|string %}selected{% endif %}>
+                    {{ item }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Filter</button>
+        <a href="{{ url_for('stock_prices.show_stock_prices') }}">Reset</a>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Sl No</th>
+                <th>Brand Category</th>
+                <th>Brand</th>
+                <th>Size ML</th>
+                <th>MRP Bottle</th>
+                <th>Old Price</th>
+                <th>Case Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in records %}
+            <tr>
+                <td>{{ row.get("Sl_No", "") }}</td>
+                <td>{{ row.get("Brand_Category", "") }}</td>
+                <td>{{ row.get("Brand", "") }}</td>
+                <td>{{ row.get("Size_ML", "") }}</td>
+                <td>{{ row.get("Maximum_Retail_Price_per_bottle", "") }}</td>
+                <td>{{ row.get("Maximum_Retail_Price_per_bottle_OLD", "") }}</td>
+                <td>{{ row.get("Maximum_Retail_Price_per_case", "") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

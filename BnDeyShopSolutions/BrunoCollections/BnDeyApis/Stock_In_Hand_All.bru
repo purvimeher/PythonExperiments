@@ -1,0 +1,20 @@
+meta {
+  name: Stock_In_Hand_All
+  type: http
+  seq: 11
+}
+
+get {
+  url: http://127.0.0.1:5000/stock-in-hand?brand_category=Deluxe%20Prestige%20Brand&size_ml=1000
+  body: none
+  auth: inherit
+}
+
+params:query {
+  brand_category: Deluxe%20Prestige%20Brand
+  size_ml: 1000
+}
+
+settings {
+  encodeUrl: true
+}

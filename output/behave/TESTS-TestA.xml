@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite time="28.21023154258728" tests='3' skipped='0'
+name="Testa" failures='0' errors='0'><testcase time="8.668819904327393" name="Success_Login_Formauthentication_Case" status="passed"
+         classname="Heroku_-_Formauthentication_Cases"><system-out>
+            <![CDATA[
+            @scenario.begin
+                @test
+                scenario: Success Login FormAuthentication Case
+                given user navigates to HerokuMainPage ... Status.passed in 1.981s 
+                when user on HerokuMainPage clicks on Form Authentication ... Status.passed in 0.589s 
+                when user on FormAuthenticationLoginPage enter username as "tomsmith" and password as "SuperSecretPassword!" ... Status.passed in 0.2053s 
+                when user on FormAuthenticationLoginPage clicks on login ... Status.passed in 0.4139s 
+                then user on FormAuthenticationSuccessPage verifies this message "Secure Area" ... Status.passed in 0.02864s 
+                when user on FormAuthenticationSuccessPage clicks on logout ... Status.passed in 0.4265s 
+                then user on FormAuthenticationLoginPage verifies this message "Login Page" ... Status.passed in 5.025s 
+@scenario.end
+            ----------------------------------------------------------------------------------------------------
+            ]]>
+            </system-out>
+        </testcase><testcase time="9.804167985916138" name="Validate_Error_Message_When_Invalid_Username_Is_Passed" status="passed"
+         classname="Heroku_-_Formauthentication_Cases"><system-out>
+            <![CDATA[
+            @scenario.begin
+                @test
+                scenario: Validate Error Message When Invalid UserName is Passed
+                given user navigates to HerokuMainPage ... Status.passed in 1.944s 
+                when user on HerokuMainPage clicks on Form Authentication ... Status.passed in 0.5626s 
+                when user on FormAuthenticationLoginPage enter username as "admin" and password as "SuperSecretPassword!" ... Status.passed in 0.208s 
+                when user on FormAuthenticationLoginPage clicks on login ... Status.passed in 0.05028s 
+                then user on FormAuthenticationLoginPage verifies the error message as "Your username is invalid!" ... Status.passed in 7.039s 
+@scenario.end
+            ----------------------------------------------------------------------------------------------------
+            ]]>
+            </system-out>
+        </testcase><testcase time="9.73724365234375" name="Validate_Error_Message_When_Invalid_Password_Is_Passed" status="passed"
+         classname="Heroku_-_Formauthentication_Cases"><system-out>
+            <![CDATA[
+            @scenario.begin
+                @test
+                scenario: Validate Error Message When Invalid Password is Passed
+                given user navigates to HerokuMainPage ... Status.passed in 1.873s 
+                when user on HerokuMainPage clicks on Form Authentication ... Status.passed in 0.5741s 
+                when user on FormAuthenticationLoginPage enter username as "tomsmith" and password as "admin" ... Status.passed in 0.2046s 
+                when user on FormAuthenticationLoginPage clicks on login ... Status.passed in 0.05168s 
+                then user on FormAuthenticationLoginPage verifies the error message as "Your password is invalid!" ... Status.passed in 7.034s 
+@scenario.end
+            ----------------------------------------------------------------------------------------------------
+            ]]>
+            </system-out>
+        </testcase></testsuite>

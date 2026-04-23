@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Monthly Stock CRUD</h1>
+
+<div style="margin-bottom:15px;">
+    <a class="btn btn-primary" href="{{ url_for('add_record') }}">Add Record</a>
+    <a class="btn btn-success" href="{{ url_for('import_csv') }}">Import CSV</a>
+    <a class="btn btn-secondary" href="{{ url_for('export_csv', **query_params) }}">Export CSV</a>
+</div>
+
+<h3>Filters / Search</h3>
+<form method="GET" action="{{ url_for('index') }}">
+    <div class="filters">
+        <div>
+            <label>Brand Category</label>
+            <select name="brand_category" id="filter_brand_category">
+                <option value="">All</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Brand</label>
+            <select name="brand" id="filter_brand">
+                <option value="">All</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Size_ML</label>
+            <select name="size_ml" id="filter_size_ml">
+                <option value="">All</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Date</label>
+            <input type="date" name="date" value="{{ query_params.get('date', '') }}">
+        </div>
+
+        <div>
+            <label>Search</label>
+            <input type="text" name="search" placeholder="Brand / Category / Date" value="{{ query_params.get('search', '') }}">
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Apply Filters</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Reset</a>
+</form>
+
+<div class="summary-box">
+    <h3>Total Quantity: {{ total_qty }}</h3>
+</div>
+
+<h3>Subtotal by Brand</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Brand</th>
+            <th>Total Qty</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in subtotal_by_brand %}
+        <tr>
+            <td>{{ row.Brand }}</td>
+            <td>{{ row.Total_Qty }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Subtotal by Brand and Size</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Brand</th>
+            <th>Size_ML</th>
+            <th>Total Qty</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in subtotal_by_brand_size %}
+        <tr>
+            <td>{{ row.Brand }}</td>
+            <td>{{ row.Size_ML }}</td>
+            <td>{{ row.Total_Qty }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Monthly Stock Records</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Sl_No</th>
+            <th>Brand Category</th>
+            <th>Brand</th>
+            <th>Size_ML</th>
+            <th>Date</th>
+            <th>Qty</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in records %}
+        <tr>
+            <td>{{ row.Sl_No }}</td>
+            <td>{{ row.Brand_Category }}</td>
+            <td>{{ row.Brand }}</td>
+            <td>{{ row.Size_ML }}</td>
+            <td>{{ row.Date }}</td>
+            <td>{{ row.Qty }}</td>
+            <td>{{ row.created_at }}</td>
+            <td>{{ row.updated_at }}</td>
+            <td>
+                <div class="actions">
+                    <a class="btn btn-warning" href="{{ url_for('edit_record', record_id=row._id) }}">Edit</a>
+                    <form method="POST" action="{{ url_for('delete_record', record_id=row._id) }}" onsubmit="return confirm('Delete this record?');">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    const dropdownMap = {{ dropdown_map|tojson }};
+
+    const selectedCategory = "{{ query_params.get('brand_category', '') }}";
+    const selectedBrand = "{{ query_params.get('brand', '') }}";
+    const selectedSize = "{{ query_params.get('size_ml', '') }}";
+
+    const categorySelect = document.getElementById("filter_brand_category");
+    const brandSelect = document.getElementById("filter_brand");
+    const sizeSelect = document.getElementById("filter_size_ml");
+
+    function populateCategories() {
+        categorySelect.innerHTML = '<option value="">All</option>';
+
+        Object.keys(dropdownMap).sort().forEach(category => {
+            const opt = document.createElement("option");
+            opt.value = category;
+            opt.textContent = category;
+            if (category === selectedCategory) {
+                opt.selected = true;
+            }
+            categorySelect.appendChild(opt);
+        });
+    }
+
+    function populateBrands() {
+        const category = categorySelect.value;
+        brandSelect.innerHTML = '<option value="">All</option>';
+        sizeSelect.innerHTML = '<option value="">All</option>';
+
+        if (category && dropdownMap[category]) {
+            Object.keys(dropdownMap[category]).sort().forEach(brand => {
+                const opt = document.createElement("option");
+                opt.value = brand;
+                opt.textContent = brand;
+                if (brand === selectedBrand) {
+                    opt.selected = true;
+                }
+                brandSelect.appendChild(opt);
+            });
+        } else {
+            // If no category selected, show all brands
+            const allBrands = new Set();
+            Object.keys(dropdownMap).forEach(cat => {
+                Object.keys(dropdownMap[cat]).forEach(brand => allBrands.add(brand));
+            });
+
+            Array.from(allBrands).sort().forEach(brand => {
+                const opt = document.createElement("option");
+                opt.value = brand;
+                opt.textContent = brand;
+                if (brand === selectedBrand) {
+                    opt.selected = true;
+                }
+                brandSelect.appendChild(opt);
+            });
+        }
+
+        populateSizes();
+    }
+
+    function populateSizes() {
+        const category = categorySelect.value;
+        const brand = brandSelect.value;
+        sizeSelect.innerHTML = '<option value="">All</option>';
+
+        let sizes = new Set();
+
+        if (category && brand && dropdownMap[category] && dropdownMap[category][brand]) {
+            dropdownMap[category][brand].forEach(size => sizes.add(size));
+        } else if (category && dropdownMap[category]) {
+            Object.keys(dropdownMap[category]).forEach(b => {
+                dropdownMap[category][b].forEach(size => sizes.add(size));
+            });
+        } else if (brand) {
+            Object.keys(dropdownMap).forEach(cat => {
+                if (dropdownMap[cat][brand]) {
+                    dropdownMap[cat][brand].forEach(size => sizes.add(size));
+                }
+            });
+        } else {
+            Object.keys(dropdownMap).forEach(cat => {
+                Object.keys(dropdownMap[cat]).forEach(b => {
+                    dropdownMap[cat][b].forEach(size => sizes.add(size));
+                });
+            });
+        }
+
+        Array.from(sizes).sort((a, b) => a - b).forEach(size => {
+            const opt = document.createElement("option");
+            opt.value = size;
+            opt.textContent = size;
+            if (String(size) === String(selectedSize)) {
+                opt.selected = true;
+            }
+            sizeSelect.appendChild(opt);
+        });
+    }
+
+    categorySelect.addEventListener("change", function() {
+        brandSelect.dataset.userChanged = "true";
+        sizeSelect.dataset.userChanged = "true";
+        populateBrands();
+    });
+
+    brandSelect.addEventListener("change", function() {
+        sizeSelect.dataset.userChanged = "true";
+        populateSizes();
+    });
+
+    populateCategories();
+    populateBrands();
+</script>
+
+{% endblock %}

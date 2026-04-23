@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }}{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Sl No</label>
+                    <input type="number" name="Sl_No" class="form-control" value="{{ stock.Sl_No if stock else '' }}" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Brand</label>
+                    <input type="text" name="Brand" class="form-control" value="{{ stock.Brand if stock else '' }}" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Brand Category</label>
+                    <input type="text" name="Brand_Category" class="form-control" value="{{ stock.Brand_Category if stock else '' }}" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Size ML</label>
+                    <input type="number" name="Size_ML" class="form-control" value="{{ stock.Size_ML if stock else '' }}" required>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">LookColumn</label>
+                    <input type="text" name="LookColumn" class="form-control" value="{{ stock.LookColumn if stock else '' }}">
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Price per Bottle</label>
+                    <input type="number" step="0.01" name="Maximum_Retail_Price_per_bottle" class="form-control" value="{{ stock.Maximum_Retail_Price_per_bottle if stock else '' }}" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Old Price per Bottle</label>
+                    <input type="number" step="0.01" name="Maximum_Retail_Price_per_bottle_OLD" class="form-control" value="{{ stock.Maximum_Retail_Price_per_bottle_OLD if stock else '' }}">
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Price per Case</label>
+                    <input type="number" step="0.01" name="Maximum_Retail_Price_per_case" class="form-control" value="{{ stock.Maximum_Retail_Price_per_case if stock else '' }}" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{{ url_for('stock_prices') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

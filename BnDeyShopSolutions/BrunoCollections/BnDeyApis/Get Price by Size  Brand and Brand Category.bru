@@ -1,0 +1,21 @@
+meta {
+  name: Get Price by Size  Brand and Brand Category
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://127.0.0.1:5000/stock-prices/by-size?size_ml=180
+  body: none
+  auth: inherit
+}
+
+params:query {
+  size_ml: 180
+  ~brand: OFFICERS%20CHOICE%20PRESTIGE%20WHISKY
+  ~Brand_category: Deluxe%20Prestige%20Brand
+}
+
+settings {
+  encodeUrl: true
+}

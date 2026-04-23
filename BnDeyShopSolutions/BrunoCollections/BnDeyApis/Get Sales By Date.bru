@@ -1,0 +1,19 @@
+meta {
+  name: Get Sales By Date
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://127.0.0.1:5000/sales/by-date?date=07/02/2026
+  body: none
+  auth: inherit
+}
+
+params:query {
+  date: 07/02/2026
+}
+
+settings {
+  encodeUrl: true
+}

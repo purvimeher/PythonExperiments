@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Sales Report</title>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.7/css/dataTables.dataTables.css" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background: #f7f7f7;
+            color: #222;
+        }
+
+        h1, h2, h3 {
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: #fff;
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .filter-box {
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(180px, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input, select, button, a.button-link {
+            padding: 8px 12px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button, a.button-link {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        button:hover, a.button-link:hover {
+            background: #1d4ed8;
+        }
+
+        .button-secondary {
+            background: #059669 !important;
+        }
+
+        .button-secondary:hover {
+            background: #047857 !important;
+        }
+
+        .summary-card {
+            margin: 20px 0;
+            padding: 16px;
+            background: #ecfeff;
+            border-left: 5px solid #0891b2;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+
+        .section-title {
+            margin-top: 32px;
+        }
+
+        table.dataTable tfoot th {
+            font-weight: bold;
+            background: #e5e7eb;
+        }
+
+        .error {
+            color: red;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .no-data {
+            padding: 12px;
+            background: #fff7ed;
+            border-left: 5px solid #f59e0b;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .chart-box {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+
+        canvas {
+            max-height: 420px;
+        }
+
+        @media (max-width: 900px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Daily Sales Report</h1>
+
+    {% if error_message %}
+        <div class="error">{{ error_message }}</div>
+    {% endif %}
+
+    <div class="filter-box">
+        <form method="get" action="/">
+            <div class="filter-grid">
+                <div>
+                    <label for="from_date">From Date (DD/MM/YYYY)</label>
+                    <input type="text" name="from_date" id="from_date" value="{{ from_date }}" placeholder="01/04/2026" />
+                </div>
+
+                <div>
+                    <label for="to_date">To Date (DD/MM/YYYY)</label>
+                    <input type="text" name="to_date" id="to_date" value="{{ to_date }}" placeholder="30/04/2026" />
+                </div>
+
+                <div>
+                    <label for="date">Selected Date</label>
+                    <select name="date" id="date">
+                        {% for dt in filtered_dates %}
+                            <option value="{{ dt }}" {% if dt == selected_date %}selected{% endif %}>
+                                {{ dt }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label>&nbsp;</label>
+                    <button type="submit">Apply Filter</button>
+                </div>
+            </div>
+        </form>
+
+        <div style="margin-top: 12px;">
+            <a
+                class="button-link button-secondary"
+                href="/export-csv?from_date={{ from_date }}&to_date={{ to_date }}"
+            >
+                Export Summary CSV
+            </a>
+        </div>
+    </div>
+
+    <h2 class="section-title">Per-Day Sales Amount Chart</h2>
+    {% if chart_labels %}
+        <div class="chart-box">
+            <canvas id="salesBarChart"></canvas>
+        </div>
+    {% else %}
+        <div class="no-data">No chart data found for the selected range.</div>
+    {% endif %}
+
+    <h2 class="section-title">Per-Day Summary for All Dates</h2>
+    {% if summary_all_dates %}
+        <table id="summaryTable" class="display">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Total Qty</th>
+                    <th>Total Sales Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in summary_all_dates %}
+                <tr>
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.total_qty }}</td>
+                    <td>{{ row.total_amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Grand Total</th>
+                    <th>{{ footer_totals.total_qty }}</th>
+                    <th>{{ footer_totals.total_amount }}</th>
+                </tr>
+            </tfoot>
+        </table>
+    {% else %}
+        <div class="no-data">No summary data found.</div>
+    {% endif %}
+
+    {% if selected_date %}
+        <h2 class="section-title">Selected Date Report: {{ selected_date }}</h2>
+
+        <div class="summary-card">
+            <div><strong>Total Qty:</strong> {{ selected_totals.total_qty }}</div>
+            <div><strong>Total Sales Amount:</strong> {{ selected_totals.total_amount }}</div>
+        </div>
+
+        <h3>Subtotal by Brand Category</h3>
+        {% if subtotal_by_category %}
+            <table id="categoryTable" class="display">
+                <thead>
+                    <tr>
+                        <th>Brand Category</th>
+                        <th>Total Qty</th>
+                        <th>Total Sales Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in subtotal_by_category %}
+                    <tr>
+                        <td>{{ row.brand_category }}</td>
+                        <td>{{ row.total_qty }}</td>
+                        <td>{{ row.total_amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-data">No category subtotal data found.</div>
+        {% endif %}
+
+        <h3>Subtotal by Brand</h3>
+        {% if subtotal_by_brand %}
+            <table id="brandTable" class="display">
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Total Qty</th>
+                        <th>Total Sales Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in subtotal_by_brand %}
+                    <tr>
+                        <td>{{ row.brand }}</td>
+                        <td>{{ row.total_qty }}</td>
+                        <td>{{ row.total_amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-data">No brand subtotal data found.</div>
+        {% endif %}
+
+        <h3>Detailed Rows for Selected Date</h3>
+        {% if daily_rows %}
+            <table id="detailTable" class="display">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Brand Category</th>
+                        <th>Brand</th>
+                        <th>Size (ML)</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in daily_rows %}
+                    <tr>
+                        <td>{{ row.date }}</td>
+                        <td>{{ row.brand_category }}</td>
+                        <td>{{ row.brand }}</td>
+                        <td>{{ row.size_ml }}</td>
+                        <td>{{ row.qty }}</td>
+                        <td>{{ row.unit_price }}</td>
+                        <td>{{ row.line_total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-data">No daily rows found for selected date.</div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- jQuery + DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.7/js/dataTables.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#summaryTable').DataTable({
+            pageLength: 10,
+            order: []
+        });
+
+        $('#categoryTable').DataTable({
+            pageLength: 10,
+            order: []
+        });
+
+        $('#brandTable').DataTable({
+            pageLength: 10,
+            order: []
+        });
+
+        $('#detailTable').DataTable({
+            pageLength: 10,
+            order: []
+        });
+    });
+
+    const chartLabels = {{ chart_labels | tojson }};
+    const chartAmounts = {{ chart_amounts | tojson }};
+
+    if (chartLabels.length > 0) {
+        const ctx = document.getElementById('salesBarChart');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Per-Day Sales Amount',
+                    data: chartAmounts
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+</script>
+</body>
+</html>

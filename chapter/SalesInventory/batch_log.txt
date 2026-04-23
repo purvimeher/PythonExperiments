@@ -1,0 +1,6 @@
+2026-04-07 21:14:33.445618 - Batch job started
+2026-04-07 21:14:33.457201 - ERROR: You are trying to merge on str and int64 columns for key 'product_id'. If you wish to proceed you should use pd.concat
+2026-04-07 21:20:56.032223 - Batch job started
+2026-04-07 21:20:56.047235 - ERROR: You are trying to merge on str and int64 columns for key 'product_id'. If you wish to proceed you should use pd.concat
+2026-04-07 21:21:58.064247 - Batch job started
+2026-04-07 21:21:58.088615 - Batch job completed successfully

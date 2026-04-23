@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-card">
+    <h1>Incoming Stock</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Brand Category</th>
+                <th>Brand</th>
+                <th>Size ML</th>
+                <th>Date</th>
+                <th>Qty</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in records %}
+            <tr>
+                <td>{{ row.get("Brand_Category", "") }}</td>
+                <td>{{ row.get("Brand", "") }}</td>
+                <td>{{ row.get("Size_ML", "") }}</td>
+                <td>{{ row.get("Date", "") }}</td>
+                <td>{{ row.get("Qty", "") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

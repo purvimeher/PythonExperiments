@@ -1,0 +1,20 @@
+meta {
+  name: Sales Summary Month By Product
+  type: http
+  seq: 18
+}
+
+get {
+  url: http://127.0.0.1:5000/api/sales/monthly/by-product?brand_category=Deluxe%20Prestige%20Brand&size_ml=1000
+  body: none
+  auth: inherit
+}
+
+params:query {
+  brand_category: Deluxe%20Prestige%20Brand
+  size_ml: 1000
+}
+
+settings {
+  encodeUrl: true
+}

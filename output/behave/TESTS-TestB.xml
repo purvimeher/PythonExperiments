@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite time="20.04563021659851" tests='2' skipped='0'
+name="Testb" failures='0' errors='0'><testcase time="9.843720436096191" name="Drag_A_On_Top_Of_B" status="passed"
+         classname="Heroku_-_Drag_And_Drop_Cases"><system-out>
+            <![CDATA[
+            @scenario.begin
+                @test
+                scenario: Drag A on Top of B
+                given user navigates to HerokuMainPage ... Status.passed in 1.967s 
+                when user on HerokuMainPage clicks on DragAndDrop ... Status.passed in 0.2553s 
+                when user on DragAndDropPage drags "A" on top of "B" ... Status.passed in 2.582s 
+                then user on DragAndDropPage verifies the first block text as "B" and second block text as "A" ... Status.passed in 5.039s 
+@scenario.end
+            ----------------------------------------------------------------------------------------------------
+            ]]>
+            </system-out>
+        </testcase><testcase time="10.20190978050232" name="Drag_B_On_Top_Of_A" status="passed"
+         classname="Heroku_-_Drag_And_Drop_Cases"><system-out>
+            <![CDATA[
+            @scenario.begin
+                @test
+                scenario: Drag B on Top of A
+                given user navigates to HerokuMainPage ... Status.passed in 1.941s 
+                when user on HerokuMainPage clicks on DragAndDrop ... Status.passed in 0.2637s 
+                when user on DragAndDropPage drags "B" on top of "A" ... Status.passed in 2.958s 
+                then user on DragAndDropPage verifies the first block text as "B" and second block text as "A" ... Status.passed in 5.04s 
+@scenario.end
+            ----------------------------------------------------------------------------------------------------
+            ]]>
+            </system-out>
+        </testcase></testsuite>
