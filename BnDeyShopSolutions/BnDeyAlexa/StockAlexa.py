@@ -64,14 +64,12 @@ class StockDetailsIntentHandler(AbstractRequestHandler):
         size = item.get("size_ml", "")
         rate = item.get("rate", 0)
         unit = item.get("unit", "NOS")
-        amount = item.get("amount", 0)
 
         speech = (
             f"{stock_item_name}. "
             f"Size is {size} ml. "
             f"Available quantity is {quantity} {unit}. "
             f"Rate is rupees {rate}. "
-            f"Amount is rupees {abs(amount)}."
         )
 
         return handler_input.response_builder.speak(speech).response

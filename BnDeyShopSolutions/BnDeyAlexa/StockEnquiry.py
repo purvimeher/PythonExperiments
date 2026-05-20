@@ -22,7 +22,7 @@ class LaunchRequestHandler(AbstractRequestHandler):
         return is_request_type("LaunchRequest")(handler_input)
 
     def handle(self, handler_input):
-        speech = "Welcome to B N Dey inventory. Ask me stock for a brand and size."
+        speech = "Welcome to B N Dey inventory. Ask me stock for a brand."
         return handler_input.response_builder.speak(speech).ask(speech).response
 
 
