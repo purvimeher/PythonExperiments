@@ -14,7 +14,7 @@ def home():
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client["bndey_db"]
-inventory = db["current_inventory"]
+inventory = db["tally_stock_items"]
 
 
 class LaunchRequestHandler(AbstractRequestHandler):
