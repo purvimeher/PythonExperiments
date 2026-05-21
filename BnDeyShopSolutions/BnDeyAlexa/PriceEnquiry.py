@@ -60,6 +60,7 @@ def extract_item_and_size(item_text):
     item_text = item_text.replace("milliliter", " ml ")
     item_text = item_text.replace("millilitres", " ml ")
     item_text = item_text.replace("millilitre", " ml ")
+    item_text = item_text.replace("millilitre", " ML ")
     item_text = item_text.replace("liters", " litre ")
     item_text = item_text.replace("liter", " litre ")
     item_text = item_text.replace("litres", " litre ")
@@ -105,7 +106,6 @@ def normalize_for_search(text):
         "litre": " ",
         "ml": " ",
         "m l": " ",
-        "chilli": "chili",
         "whisky": "whiskey",
         "whiskey": "whisky",
     }
