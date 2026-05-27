@@ -6,7 +6,7 @@ st.set_page_config(page_title="Stock Journal Viewer", layout="wide")
 
 MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = "bndey_db"
-COLLECTION_NAME = "stock_journal"
+COLLECTION_NAME = "tally_stock_journal"
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]

@@ -8,7 +8,7 @@ XML_FILE = "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolu
 
 MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = "bndey_db"
-COLLECTION_NAME = "stock_journal"
+COLLECTION_NAME = "tally_stock_journal"
 
 
 def clean_invalid_xml_chars(xml_text):

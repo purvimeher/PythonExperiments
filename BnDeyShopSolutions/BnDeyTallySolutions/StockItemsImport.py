@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 from pymongo import MongoClient, UpdateOne
 from datetime import datetime
 
-XML_FILE = "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyTallySolutions/StkSum.xml"
+XML_FILE = "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyTallySolutions/OutStockstck.xml"
 
 MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = "bndey_db"
