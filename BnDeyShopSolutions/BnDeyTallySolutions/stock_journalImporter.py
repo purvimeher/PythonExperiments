@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from pymongo import MongoClient, UpdateOne
 
-XML_FILE = "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyTallySolutions/Stock Journal_4.xml"
+XML_FILE = "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyTallySolutions/Stock Journal_5.xml"
 
 MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = "bndey_db"
