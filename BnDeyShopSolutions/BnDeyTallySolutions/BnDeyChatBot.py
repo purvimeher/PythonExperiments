@@ -97,36 +97,50 @@ def search_item_strict(user_input):
 
 
 def format_result(item):
+
     if not item:
         return """
 No exact stock item found.
 
-Please enter the full stock item name exactly like Tally.
+Please enter the exact stock item name from Tally.
 
 Example:
 
-`BLACK BY BACARDI CLASSIC ORIGINAL PREMIUM CRAFTED RUM 180 - ML`
+BLACK BY BACARDI CLASSIC ORIGINAL PREMIUM CRAFTED RUM 180 - ML
 """
 
-    quantity = item.get("quantity", 0)
-    rate = item.get("rate", 0)
+    quantity = float(item.get("quantity", 0))
+    rate = float(item.get("rate", 0))
+
+    # Stock Status
+    if quantity <= 0:
+        stock_status = "❌ NOT AVAILABLE"
+    elif quantity <= 5:
+        stock_status = f"⚠️ LOW STOCK ({int(quantity)} bottles available)"
+    else:
+        stock_status = f"✅ AVAILABLE ({int(quantity)} bottles available)"
+
+    # Price Status
+    if rate <= 0:
+        price_status = "Price not configured"
+    else:
+        price_status = f"₹{rate:,.2f}"
 
     response = f"""
-### {item.get("stock_item_name", "")}
+### {item.get("stock_item_name","")}
 
-Brand: **{item.get("brand", "")}**  
-Size: **{item.get("size_ml", "")} ml**  
-Price: **₹{rate}**  
-Stock: **{quantity} {item.get("unit", "NOS")}**  
-Source: **{item.get("source", "")}**
+**Brand:** {item.get("brand","")}
+
+**Size:** {item.get("size_ml","")} ML
+
+**Price:** {price_status}
+
+**Stock Quantity:** {quantity:.0f} {item.get("unit","NOS")}
+
+**Stock Status:** {stock_status}
+
+**Source:** {item.get("source","")}
 """
-
-    if quantity <= 0:
-        response += "\nStatus: **Out of stock**"
-    elif quantity <= 5:
-        response += "\nStatus: **Low stock**"
-    else:
-        response += "\nStatus: **Available**"
 
     return response
 
