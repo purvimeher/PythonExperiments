@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 import streamlit as st
 from pymongo import MongoClient
-
+import pandas as pd
 # ---------------- PAGE CONFIG ----------------
 
 st.set_page_config(
@@ -285,6 +285,59 @@ def get_daily_sales(date_text):
         "items": item_sales
     }
 
+def get_sales_trend(days=30):
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$voucher_date",
+                "total_quantity": {"$sum": "$quantity"},
+                "total_amount": {"$sum": "$amount"},
+                "voucher_count": {"$sum": 1}
+            }
+        },
+        {"$sort": {"_id": 1}}
+    ]
+
+    data = list(sales_collection.aggregate(pipeline))
+
+    if not data:
+        return pd.DataFrame()
+
+    df = pd.DataFrame([
+        {
+            "date": item["_id"],
+            "total_quantity": item["total_quantity"],
+            "total_amount": item["total_amount"],
+            "voucher_count": item["voucher_count"]
+        }
+        for item in data
+    ])
+
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date")
+
+    return df.tail(days)
+
+
+def render_sales_trends():
+    df = get_sales_trend(days=30)
+
+    if df.empty:
+        st.info("No sales trend data available.")
+        return
+
+    st.markdown("## Daily Sales Trends - Last 30 Days")
+
+    chart_df = df.set_index("date")
+
+    st.markdown("### Total Sales Amount Trend")
+    st.line_chart(chart_df["total_amount"])
+
+    st.markdown("### Total Quantity Sold Trend")
+    st.bar_chart(chart_df["total_quantity"])
+
+    st.markdown("### Voucher Lines Trend")
+    st.line_chart(chart_df["voucher_count"])
 
 def render_daily_sales(query):
     date_text = extract_date_from_query(query)
@@ -327,7 +380,7 @@ Calculated Amount: **₹{calculated_amount:,.2f}**
 
 ---
 """)
-
+    render_sales_trends()
 
 # ---------------- CHAT ROUTER ----------------
 
