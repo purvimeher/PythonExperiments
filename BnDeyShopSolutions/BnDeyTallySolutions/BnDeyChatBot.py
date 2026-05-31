@@ -41,10 +41,6 @@ h1,h2,h3,h4,h5,h6,p,label,span,div {
     padding: 10px;
 }
 
-[data-testid="stChatInput"] {
-    background-color: #111111 !important;
-}
-
 .stButton button {
     background-color: #D4AF37;
     color: black;
@@ -120,7 +116,6 @@ def normalize(text):
         return ""
 
     text = str(text).upper()
-
     text = text.replace("-", " ")
     text = text.replace("_", " ")
     text = text.replace(".", "")
@@ -291,11 +286,11 @@ def get_daily_sales(date_text):
     }
 
 
-def format_daily_sales(query):
+def render_daily_sales(query):
     date_text = extract_date_from_query(query)
     sales = get_daily_sales(date_text)
 
-    response = f"""
+    st.markdown(f"""
 ## Daily Sales Summary
 
 📅 Date: **{sales["date"]}**
@@ -305,25 +300,22 @@ def format_daily_sales(query):
 💰 Total Sales Amount: **₹{sales["total_amount"]:,.2f}**
 
 🧾 Total Voucher Lines: **{sales["total_vouchers"]:,}**
-
----
-"""
+""")
 
     if not sales["items"]:
-        response += "\nNo sales found for this date."
-        return response
+        st.info("No sales found for this date.")
+        return
 
-    response += "\n## Item-wise Sales\n\n"
+    with st.expander("View Item-wise Voucher Lines", expanded=False):
+        for item in sales["items"]:
+            data = item["_id"]
 
-    for item in sales["items"][:30]:
-        data = item["_id"]
+            qty = float(item.get("quantity", 0))
+            amount = float(item.get("amount", 0))
+            rate = float(data.get("rate", 0))
+            calculated_amount = qty * rate
 
-        qty = float(item.get("quantity", 0))
-        amount = float(item.get("amount", 0))
-        rate = float(data.get("rate", 0))
-        calculated_amount = qty * rate
-
-        response += f"""
+            st.markdown(f"""
 ### {data.get("stock_item_name", "")}
 
 Brand: **{data.get("brand", "")}**  
@@ -334,9 +326,7 @@ Amount from Tally: **₹{amount:,.2f}**
 Calculated Amount: **₹{calculated_amount:,.2f}**
 
 ---
-"""
-
-    return response
+""")
 
 
 # ---------------- CHAT ROUTER ----------------
@@ -363,9 +353,6 @@ def is_sales_query(query):
 
 
 def handle_chat(user_input):
-    if is_sales_query(user_input):
-        return format_daily_sales(user_input)
-
     item = search_stock_item(user_input)
     return format_stock_result(item)
 
@@ -421,12 +408,20 @@ if user_input:
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    answer = handle_chat(user_input)
-
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": answer
-    })
-
     with st.chat_message("assistant"):
-        st.markdown(answer)
+        if is_sales_query(user_input):
+            render_daily_sales(user_input)
+
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": f"Daily sales summary displayed for {extract_date_from_query(user_input)}."
+            })
+        else:
+            answer = handle_chat(user_input)
+
+            st.markdown(answer)
+
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": answer
+            })
