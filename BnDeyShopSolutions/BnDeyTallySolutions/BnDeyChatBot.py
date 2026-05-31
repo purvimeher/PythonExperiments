@@ -5,7 +5,101 @@ from datetime import datetime
 import streamlit as st
 from pymongo import MongoClient
 
-# ---------------- CONFIG ----------------
+# ---------------- PAGE CONFIG ----------------
+
+st.set_page_config(
+    page_title="BN Dey Inventory Chatbot",
+    page_icon="🥃",
+    layout="wide"
+)
+
+# ---------------- BLACK THEME ----------------
+
+st.markdown("""
+<style>
+.stApp {
+    background-color: #000000;
+    color: white;
+}
+
+.main .block-container {
+    background-color: #000000;
+    padding-top: 1rem;
+}
+
+section[data-testid="stSidebar"] {
+    background-color: #111111;
+}
+
+h1,h2,h3,h4,h5,h6,p,label,span,div {
+    color: white !important;
+}
+
+[data-testid="stChatMessage"] {
+    background-color: #111111 !important;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+[data-testid="stChatInput"] {
+    background-color: #111111 !important;
+}
+
+.stButton button {
+    background-color: #D4AF37;
+    color: black;
+    border-radius: 8px;
+    border: none;
+}
+
+hr {
+    border-color: #333333;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# ---------------- HEADER WITH LOGO ----------------
+
+LOGO_FILE = "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyTallySolutions/bbndeylogo.png"
+
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col2:
+    try:
+        st.image(LOGO_FILE, use_container_width=True)
+    except Exception:
+        st.markdown(
+            """
+            <h1 style='text-align:center;color:#D4AF37 !important;'>
+                B.N. DEY
+            </h1>
+            """,
+            unsafe_allow_html=True
+        )
+
+st.markdown(
+    """
+    <h1 style='text-align:center;color:#D4AF37 !important;margin-top:0px;'>
+        BN Dey Inventory Chatbot
+    </h1>
+
+    <h3 style='text-align:center;color:#D4AF37 !important;'>
+        Serving Since 1861
+    </h3>
+
+    <p style='text-align:center;font-size:18px;color:#CCCCCC !important;'>
+        Stock Availability • Price Lookup • Daily Sales Analytics
+    </p>
+    """,
+    unsafe_allow_html=True
+)
+
+st.divider()
+
+
+# ---------------- MONGODB CONFIG ----------------
+
 MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = "bndey_db"
 
@@ -18,30 +112,28 @@ db = client[DB_NAME]
 stock_collection = db[STOCK_COLLECTION]
 sales_collection = db[SALES_COLLECTION]
 
-st.set_page_config(page_title="BN Dey Inventory Chatbot", layout="wide")
-st.title("BN Dey Inventory Chatbot")
-st.caption("Stock lookup + daily sales from Tally Daily Sales")
 
-
-# ---------------- NORMALIZE ----------------
+# ---------------- HELPERS ----------------
 
 def normalize(text):
     if not text:
         return ""
 
     text = str(text).upper()
+
     text = text.replace("-", " ")
     text = text.replace("_", " ")
     text = text.replace(".", "")
     text = text.replace(",", " ")
     text = text.replace("'", "")
     text = text.replace('"', "")
+
     text = text.replace("MILLILITERS", "ML")
     text = text.replace("MILLILITRES", "ML")
     text = text.replace("MILLILITER", "ML")
     text = text.replace("MILLILITRE", "ML")
-    text = re.sub(r"\s+", " ", text)
 
+    text = re.sub(r"\s+", " ", text)
     return text.strip()
 
 
@@ -52,14 +144,17 @@ def update_normalized_stock_names():
     updated = 0
 
     for doc in docs:
+        stock_item_name = doc.get("stock_item_name", "")
+
         stock_collection.update_one(
             {"_id": doc["_id"]},
             {
                 "$set": {
-                    "stock_item_name_normalized": normalize(doc.get("stock_item_name", ""))
+                    "stock_item_name_normalized": normalize(stock_item_name)
                 }
             }
         )
+
         updated += 1
 
     stock_collection.create_index("stock_item_name_normalized")
@@ -71,8 +166,10 @@ def update_normalized_stock_names():
 def search_stock_item(user_input):
     normalized_query = normalize(user_input)
 
-    return stock_collection.find_one(
-        {"stock_item_name_normalized": normalized_query},
+    item = stock_collection.find_one(
+        {
+            "stock_item_name_normalized": normalized_query
+        },
         {
             "_id": 0,
             "stock_item_name": 1,
@@ -86,13 +183,15 @@ def search_stock_item(user_input):
         }
     )
 
+    return item
+
 
 def format_stock_result(item):
     if not item:
         return """
-No exact stock item found.
+### No exact stock item found
 
-Please enter exact Tally stock item name.
+Please enter the exact Tally stock item name.
 
 Example:
 
@@ -123,7 +222,7 @@ Example:
 """
 
 
-# ---------------- DAILY SALES FROM tally_daily_sales ----------------
+# ---------------- DAILY SALES ----------------
 
 def extract_date_from_query(query):
     query = query.lower()
@@ -218,10 +317,10 @@ def format_daily_sales(query):
 
     for item in sales["items"][:30]:
         data = item["_id"]
+
         qty = float(item.get("quantity", 0))
         amount = float(item.get("amount", 0))
         rate = float(data.get("rate", 0))
-
         calculated_amount = qty * rate
 
         response += f"""
@@ -292,17 +391,17 @@ if "messages" not in st.session_state:
             "content": """
 Ask me stock or sales questions.
 
-Stock example:
+**Stock example:**
 
 `OFFICERS CHOICE PRESTIGE WHISKY 375 - ML`
 
-Sales examples:
+**Sales examples:**
 
 `daily sales 2026-04-07`
 
 `total sales 07/04/2026`
 
-`quantity sold 2026-04-07`
+`quantity sold today`
 """
         }
     ]
@@ -314,14 +413,20 @@ for msg in st.session_state.messages:
 user_input = st.chat_input("Ask stock or sales question...")
 
 if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    st.session_state.messages.append({
+        "role": "user",
+        "content": user_input
+    })
 
     with st.chat_message("user"):
         st.markdown(user_input)
 
     answer = handle_chat(user_input)
 
-    st.session_state.messages.append({"role": "assistant", "content": answer})
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": answer
+    })
 
     with st.chat_message("assistant"):
         st.markdown(answer)
