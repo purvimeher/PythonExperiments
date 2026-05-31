@@ -2,9 +2,10 @@
 
 import re
 from datetime import datetime
+import pandas as pd
 import streamlit as st
 from pymongo import MongoClient
-import pandas as pd
+
 # ---------------- PAGE CONFIG ----------------
 
 st.set_page_config(
@@ -54,10 +55,9 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-
 # ---------------- HEADER WITH LOGO ----------------
 
-LOGO_FILE = "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyTallySolutions/bbndeylogo.png"
+LOGO_FILE = "/Users/mehermeka/PycharmProjects/PythonProjectSelenium/BnDeyShopSolutions/BnDeyTallySolutions/bndeylogo.png"
 
 col1, col2, col3 = st.columns([1, 2, 1])
 
@@ -74,25 +74,21 @@ with col2:
             unsafe_allow_html=True
         )
 
-st.markdown(
-    """
-    <h1 style='text-align:center;color:#D4AF37 !important;margin-top:0px;'>
-        BN Dey Inventory Chatbot
-    </h1>
+st.markdown("""
+<h1 style='text-align:center;color:#D4AF37 !important;margin-top:0px;'>
+    BN Dey Inventory Chatbot
+</h1>
 
-    <h3 style='text-align:center;color:#D4AF37 !important;'>
-        Serving Since 1861
-    </h3>
+<h3 style='text-align:center;color:#D4AF37 !important;'>
+    Serving Since 1861
+</h3>
 
-    <p style='text-align:center;font-size:18px;color:#CCCCCC !important;'>
-        Stock Availability • Price Lookup • Daily Sales Analytics
-    </p>
-    """,
-    unsafe_allow_html=True
-)
+<p style='text-align:center;font-size:18px;color:#CCCCCC !important;'>
+    Stock Availability • Price Lookup • Daily Sales Analytics
+</p>
+""", unsafe_allow_html=True)
 
 st.divider()
-
 
 # ---------------- MONGODB CONFIG ----------------
 
@@ -107,7 +103,6 @@ db = client[DB_NAME]
 
 stock_collection = db[STOCK_COLLECTION]
 sales_collection = db[SALES_COLLECTION]
-
 
 # ---------------- HELPERS ----------------
 
@@ -161,7 +156,7 @@ def update_normalized_stock_names():
 def search_stock_item(user_input):
     normalized_query = normalize(user_input)
 
-    item = stock_collection.find_one(
+    return stock_collection.find_one(
         {
             "stock_item_name_normalized": normalized_query
         },
@@ -177,8 +172,6 @@ def search_stock_item(user_input):
             "source": 1
         }
     )
-
-    return item
 
 
 def format_stock_result(item):
@@ -239,11 +232,7 @@ def extract_date_from_query(query):
 
 def get_daily_sales(date_text):
     pipeline = [
-        {
-            "$match": {
-                "voucher_date": date_text
-            }
-        },
+        {"$match": {"voucher_date": date_text}},
         {
             "$group": {
                 "_id": {
@@ -253,22 +242,12 @@ def get_daily_sales(date_text):
                     "rate": "$rate",
                     "unit": "$unit"
                 },
-                "quantity": {
-                    "$sum": "$quantity"
-                },
-                "amount": {
-                    "$sum": "$amount"
-                },
-                "voucher_count": {
-                    "$sum": 1
-                }
+                "quantity": {"$sum": "$quantity"},
+                "amount": {"$sum": "$amount"},
+                "voucher_count": {"$sum": 1}
             }
         },
-        {
-            "$sort": {
-                "quantity": -1
-            }
-        }
+        {"$sort": {"quantity": -1}}
     ]
 
     item_sales = list(sales_collection.aggregate(pipeline))
@@ -284,6 +263,7 @@ def get_daily_sales(date_text):
         "total_vouchers": total_vouchers,
         "items": item_sales
     }
+
 
 def get_sales_trend(days=30):
     pipeline = [
@@ -306,9 +286,9 @@ def get_sales_trend(days=30):
     df = pd.DataFrame([
         {
             "date": item["_id"],
-            "total_quantity": item["total_quantity"],
-            "total_amount": item["total_amount"],
-            "voucher_count": item["voucher_count"]
+            "total_quantity": item.get("total_quantity", 0),
+            "total_amount": item.get("total_amount", 0),
+            "voucher_count": item.get("voucher_count", 0)
         }
         for item in data
     ])
@@ -339,6 +319,7 @@ def render_sales_trends():
     st.markdown("### Voucher Lines Trend")
     st.line_chart(chart_df["voucher_count"])
 
+
 def render_daily_sales(query):
     date_text = extract_date_from_query(query)
     sales = get_daily_sales(date_text)
@@ -354,6 +335,8 @@ def render_daily_sales(query):
 
 🧾 Total Voucher Lines: **{sales["total_vouchers"]:,}**
 """)
+
+    render_sales_trends()
 
     if not sales["items"]:
         st.info("No sales found for this date.")
@@ -380,7 +363,7 @@ Calculated Amount: **₹{calculated_amount:,.2f}**
 
 ---
 """)
-    render_sales_trends()
+
 
 # ---------------- CHAT ROUTER ----------------
 
@@ -399,36 +382,23 @@ def is_sales_query(query):
         "total sales",
         "quantity sold",
         "bottles sold",
-        "voucher sales"
+        "voucher sales",
+        "sales trend",
+        "sales graph",
+        "sales chart"
     ]
 
     return any(keyword in query for keyword in keywords)
 
 
-def handle_chat(user_input):
+def handle_stock_chat(user_input):
     item = search_stock_item(user_input)
     return format_stock_result(item)
 
 
-# ---------------- SIDEBAR ----------------
+# ---------------- INITIAL CHAT ----------------
 
-with st.sidebar:
-    st.header("Admin")
-
-    if st.button("Create / Refresh Normalized Stock Names"):
-        count = update_normalized_stock_names()
-        st.success(f"Updated {count} stock items")
-
-    st.info("Click this after importing new Tally stock data.")
-
-
-# ---------------- CHAT UI ----------------
-
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {
-            "role": "assistant",
-            "content": """
+WELCOME_MESSAGE = """
 Ask me stock or sales questions.
 
 **Stock example:**
@@ -442,9 +412,47 @@ Ask me stock or sales questions.
 `total sales 07/04/2026`
 
 `quantity sold today`
+
+`sales trend`
 """
+
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": WELCOME_MESSAGE
         }
     ]
+
+
+# ---------------- SIDEBAR ----------------
+
+with st.sidebar:
+    st.header("Admin")
+
+    if st.button("🔄 Refresh Stock Index"):
+        count = update_normalized_stock_names()
+        st.success(f"Updated {count} stock items")
+
+    st.divider()
+
+    if st.button("🗑️ Clear Chat"):
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": WELCOME_MESSAGE
+            }
+        ]
+        st.rerun()
+
+    st.divider()
+
+    st.metric("Chat Messages", len(st.session_state.messages))
+
+    st.info("BN Dey Inventory & Sales Assistant")
+
+
+# ---------------- CHAT UI ----------------
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -465,16 +473,12 @@ if user_input:
         if is_sales_query(user_input):
             render_daily_sales(user_input)
 
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": f"Daily sales summary displayed for {extract_date_from_query(user_input)}."
-            })
+            assistant_message = f"Daily sales summary and trend graphs displayed for {extract_date_from_query(user_input)}."
         else:
-            answer = handle_chat(user_input)
+            assistant_message = handle_stock_chat(user_input)
+            st.markdown(assistant_message)
 
-            st.markdown(answer)
-
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": answer
-            })
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": assistant_message
+        })
