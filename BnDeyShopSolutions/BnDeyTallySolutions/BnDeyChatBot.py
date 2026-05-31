@@ -1,22 +1,26 @@
 # app.py
 
 import re
+from datetime import datetime
 import streamlit as st
 from pymongo import MongoClient
 
 # ---------------- CONFIG ----------------
 MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = "bndey_db"
-COLLECTION_NAME = "tally_stock_items"
+
+STOCK_COLLECTION = "tally_stock_items"
+SALES_COLLECTION = "tally_daily_sales"
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
-collection = db[COLLECTION_NAME]
+
+stock_collection = db[STOCK_COLLECTION]
+sales_collection = db[SALES_COLLECTION]
 
 st.set_page_config(page_title="BN Dey Inventory Chatbot", layout="wide")
-
 st.title("BN Dey Inventory Chatbot")
-st.caption("Strict filter on stock_item_name")
+st.caption("Stock lookup + daily sales from Tally Daily Sales")
 
 
 # ---------------- NORMALIZE ----------------
@@ -26,60 +30,49 @@ def normalize(text):
         return ""
 
     text = str(text).upper()
-
     text = text.replace("-", " ")
     text = text.replace("_", " ")
     text = text.replace(".", "")
     text = text.replace(",", " ")
     text = text.replace("'", "")
     text = text.replace('"', "")
-
     text = text.replace("MILLILITERS", "ML")
     text = text.replace("MILLILITRES", "ML")
     text = text.replace("MILLILITER", "ML")
     text = text.replace("MILLILITRE", "ML")
-
     text = re.sub(r"\s+", " ", text)
+
     return text.strip()
 
 
-# ---------------- ONE-TIME NORMALIZED FIELD UPDATE ----------------
+# ---------------- STOCK NORMALIZATION ----------------
 
-def update_normalized_names():
-    docs = collection.find({}, {"stock_item_name": 1})
-
+def update_normalized_stock_names():
+    docs = stock_collection.find({}, {"stock_item_name": 1})
     updated = 0
 
     for doc in docs:
-        stock_item_name = doc.get("stock_item_name", "")
-
-        normalized_name = normalize(stock_item_name)
-
-        collection.update_one(
+        stock_collection.update_one(
             {"_id": doc["_id"]},
             {
                 "$set": {
-                    "stock_item_name_normalized": normalized_name
+                    "stock_item_name_normalized": normalize(doc.get("stock_item_name", ""))
                 }
             }
         )
-
         updated += 1
 
-    collection.create_index("stock_item_name_normalized")
-
+    stock_collection.create_index("stock_item_name_normalized")
     return updated
 
 
-# ---------------- SEARCH ----------------
+# ---------------- STOCK SEARCH ----------------
 
-def search_item_strict(user_input):
+def search_stock_item(user_input):
     normalized_query = normalize(user_input)
 
-    result = collection.find_one(
-        {
-            "stock_item_name_normalized": normalized_query
-        },
+    return stock_collection.find_one(
+        {"stock_item_name_normalized": normalized_query},
         {
             "_id": 0,
             "stock_item_name": 1,
@@ -93,56 +86,189 @@ def search_item_strict(user_input):
         }
     )
 
-    return result
 
-
-def format_result(item):
-
+def format_stock_result(item):
     if not item:
         return """
 No exact stock item found.
 
-Please enter the exact stock item name from Tally.
+Please enter exact Tally stock item name.
 
 Example:
 
-BLACK BY BACARDI CLASSIC ORIGINAL PREMIUM CRAFTED RUM 180 - ML
+`OFFICERS CHOICE PRESTIGE WHISKY 375 - ML`
 """
 
     quantity = float(item.get("quantity", 0))
     rate = float(item.get("rate", 0))
 
-    # Stock Status
     if quantity <= 0:
-        stock_status = "❌ NOT AVAILABLE"
+        stock_status = f"❌ NOT AVAILABLE — {quantity:.0f} {item.get('unit', 'NOS')}"
     elif quantity <= 5:
-        stock_status = f"⚠️ LOW STOCK ({int(quantity)} bottles available)"
+        stock_status = f"⚠️ LOW STOCK — {quantity:.0f} {item.get('unit', 'NOS')} available"
     else:
-        stock_status = f"✅ AVAILABLE ({int(quantity)} bottles available)"
+        stock_status = f"✅ AVAILABLE — {quantity:.0f} {item.get('unit', 'NOS')} available"
 
-    # Price Status
-    if rate <= 0:
-        price_status = "Price not configured"
-    else:
-        price_status = f"₹{rate:,.2f}"
+    price_status = "Price not configured" if rate <= 0 else f"₹{rate:,.2f}"
+
+    return f"""
+### {item.get("stock_item_name", "")}
+
+**Brand:** {item.get("brand", "")}  
+**Size:** {item.get("size_ml", "")} ML  
+**Price:** {price_status}  
+**Stock Quantity:** {quantity:.0f} {item.get("unit", "NOS")}  
+**Stock Status:** {stock_status}  
+**Source:** {item.get("source", "")}
+"""
+
+
+# ---------------- DAILY SALES FROM tally_daily_sales ----------------
+
+def extract_date_from_query(query):
+    query = query.lower()
+
+    if "today" in query:
+        return datetime.today().strftime("%Y-%m-%d")
+
+    match = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", query)
+    if match:
+        return match.group(1)
+
+    match = re.search(r"\b(\d{2}/\d{2}/\d{4})\b", query)
+    if match:
+        dt = datetime.strptime(match.group(1), "%d/%m/%Y")
+        return dt.strftime("%Y-%m-%d")
+
+    return datetime.today().strftime("%Y-%m-%d")
+
+
+def get_daily_sales(date_text):
+    pipeline = [
+        {
+            "$match": {
+                "voucher_date": date_text
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "stock_item_name": "$stock_item_name",
+                    "brand": "$brand",
+                    "size_ml": "$size_ml",
+                    "rate": "$rate",
+                    "unit": "$unit"
+                },
+                "quantity": {
+                    "$sum": "$quantity"
+                },
+                "amount": {
+                    "$sum": "$amount"
+                },
+                "voucher_count": {
+                    "$sum": 1
+                }
+            }
+        },
+        {
+            "$sort": {
+                "quantity": -1
+            }
+        }
+    ]
+
+    item_sales = list(sales_collection.aggregate(pipeline))
+
+    total_quantity = sum(float(item.get("quantity", 0)) for item in item_sales)
+    total_amount = sum(float(item.get("amount", 0)) for item in item_sales)
+    total_vouchers = sum(int(item.get("voucher_count", 0)) for item in item_sales)
+
+    return {
+        "date": date_text,
+        "total_quantity": total_quantity,
+        "total_amount": total_amount,
+        "total_vouchers": total_vouchers,
+        "items": item_sales
+    }
+
+
+def format_daily_sales(query):
+    date_text = extract_date_from_query(query)
+    sales = get_daily_sales(date_text)
 
     response = f"""
-### {item.get("stock_item_name","")}
+## Daily Sales Summary
 
-**Brand:** {item.get("brand","")}
+📅 Date: **{sales["date"]}**
 
-**Size:** {item.get("size_ml","")} ML
+🍾 Total Quantity Sold: **{sales["total_quantity"]:,.0f} NOS**
 
-**Price:** {price_status}
+💰 Total Sales Amount: **₹{sales["total_amount"]:,.2f}**
 
-**Stock Quantity:** {quantity:.0f} {item.get("unit","NOS")}
+🧾 Total Voucher Lines: **{sales["total_vouchers"]:,}**
 
-**Stock Status:** {stock_status}
+---
+"""
 
-**Source:** {item.get("source","")}
+    if not sales["items"]:
+        response += "\nNo sales found for this date."
+        return response
+
+    response += "\n## Item-wise Sales\n\n"
+
+    for item in sales["items"][:30]:
+        data = item["_id"]
+        qty = float(item.get("quantity", 0))
+        amount = float(item.get("amount", 0))
+        rate = float(data.get("rate", 0))
+
+        calculated_amount = qty * rate
+
+        response += f"""
+### {data.get("stock_item_name", "")}
+
+Brand: **{data.get("brand", "")}**  
+Size: **{data.get("size_ml", "")} ML**  
+Qty Sold: **{qty:,.0f} {data.get("unit", "NOS")}**  
+Rate: **₹{rate:,.2f}**  
+Amount from Tally: **₹{amount:,.2f}**  
+Calculated Amount: **₹{calculated_amount:,.2f}**
+
+---
 """
 
     return response
+
+
+# ---------------- CHAT ROUTER ----------------
+
+def is_sales_query(query):
+    query = query.lower()
+
+    keywords = [
+        "daily sale",
+        "daily sales",
+        "sales today",
+        "today sale",
+        "today sales",
+        "sale figure",
+        "sales figure",
+        "total sale",
+        "total sales",
+        "quantity sold",
+        "bottles sold",
+        "voucher sales"
+    ]
+
+    return any(keyword in query for keyword in keywords)
+
+
+def handle_chat(user_input):
+    if is_sales_query(user_input):
+        return format_daily_sales(user_input)
+
+    item = search_stock_item(user_input)
+    return format_stock_result(item)
 
 
 # ---------------- SIDEBAR ----------------
@@ -150,13 +276,11 @@ BLACK BY BACARDI CLASSIC ORIGINAL PREMIUM CRAFTED RUM 180 - ML
 with st.sidebar:
     st.header("Admin")
 
-    if st.button("Create / Refresh Normalized Names"):
-        count = update_normalized_names()
+    if st.button("Create / Refresh Normalized Stock Names"):
+        count = update_normalized_stock_names()
         st.success(f"Updated {count} stock items")
 
-    st.info(
-        "Click this once after importing new Tally stock data."
-    )
+    st.info("Click this after importing new Tally stock data.")
 
 
 # ---------------- CHAT UI ----------------
@@ -166,11 +290,19 @@ if "messages" not in st.session_state:
         {
             "role": "assistant",
             "content": """
-Enter the exact stock item name from Tally.
+Ask me stock or sales questions.
 
-Example:
+Stock example:
 
-`BLACK BY BACARDI CLASSIC ORIGINAL PREMIUM CRAFTED RUM 180 - ML`
+`OFFICERS CHOICE PRESTIGE WHISKY 375 - ML`
+
+Sales examples:
+
+`daily sales 2026-04-07`
+
+`total sales 07/04/2026`
+
+`quantity sold 2026-04-07`
 """
         }
     ]
@@ -179,24 +311,17 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-user_input = st.chat_input("Enter exact stock item name...")
+user_input = st.chat_input("Ask stock or sales question...")
 
 if user_input:
-    st.session_state.messages.append({
-        "role": "user",
-        "content": user_input
-    })
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    item = search_item_strict(user_input)
-    answer = format_result(item)
+    answer = handle_chat(user_input)
 
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": answer
-    })
+    st.session_state.messages.append({"role": "assistant", "content": answer})
 
     with st.chat_message("assistant"):
         st.markdown(answer)
