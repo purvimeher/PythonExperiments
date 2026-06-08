@@ -9,7 +9,7 @@ from pymongo import MongoClient
 # ---------------- PAGE CONFIG ----------------
 
 st.set_page_config(
-    page_title="BN Dey Inventory Chatbot",
+    page_title="B.N.Dey Inventory Chatbot",
     page_icon="🥃",
     layout="wide"
 )
@@ -76,7 +76,7 @@ with col2:
 
 st.markdown("""
 <h1 style='text-align:center;color:#D4AF37 !important;margin-top:0px;'>
-    BN Dey Inventory Chatbot
+    B.N.Dey Inventory Chatbot
 </h1>
 
 <h3 style='text-align:center;color:#D4AF37 !important;'>
